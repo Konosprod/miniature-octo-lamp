@@ -50,6 +50,18 @@ def main():
     data = data.sort_values(by="id", ascending=True)
     data["id"] = data["id"].astype(int)
 
+    data = data[
+        [
+            "id",
+            "title_english",
+            "title_native",
+            "description",
+            "genres",
+            "tags",
+            "siteUrl",
+        ]
+    ]
+
     embedder = MistralEmbedder(
         model_name="mistral-embed",
         api_key=MISTRAL_API_KEY,
