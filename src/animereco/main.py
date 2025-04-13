@@ -53,6 +53,17 @@ def main():
         api_key=MISTRAL_API_KEY,
     )
 
+    last_index = 0
+
+    with db.get_session() as session:
+        last_index = (
+            session.query(AnimeMistral).order_by(AnimeMistral.anime_id.desc()).first()
+        )
+
+    if last_index is not None:
+        last_index = last_index.anime_id
+        data = data[data["id"] > last_index]
+
     for _, anime in data.iterrows():
         genres = json.loads(anime["genres"])
 
