@@ -1,3 +1,4 @@
+import binascii
 import re
 
 from lxml import html
@@ -12,6 +13,15 @@ def clean_html_string(html_string: str) -> str:
     Returns:
         str: The cleaned string.
     """
+
+    if html_string is None:
+        return ""
+
+    html_string = html_string.lstrip().rstrip()
+
+    if html_string == "":
+        return ""
+
     # Remove HTML tags
     clean_text = html.fromstring(html_string).text_content()
     # Remove extra spaces
