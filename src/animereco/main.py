@@ -45,8 +45,10 @@ def main():
     db = Database()
     db.init_db()
 
+    logger.info("Starting to load anime data")
     data = pickle.load(open(Path(__file__).parent / "data" / "anime.pkl", "rb"))
     data = data.sort_values(by="id", ascending=True)
+    data["id"] = data["id"].astype(int)
 
     embedder = MistralEmbedder(
         model_name="mistral-embed",
@@ -56,13 +58,17 @@ def main():
     last_index = 0
 
     with db.get_session() as session:
-        last_index = (
+        last_entry = (
             session.query(AnimeMistral).order_by(AnimeMistral.anime_id.desc()).first()
         )
 
-    if last_index is not None:
-        last_index = last_index.anime_id
-        data = data[data["id"] > last_index]
+        if last_entry is not None:
+            last_index = last_entry.anime_id
+            logger.debug(f"Last index: {last_index}")
+
+    data = data[data["id"] > last_index]
+
+    logger.info(f"Loading {len(data)} anime data")
 
     for _, anime in data.iterrows():
         genres = json.loads(anime["genres"])
@@ -102,7 +108,7 @@ def main():
 
         anime_entity = AnimeMistral(
             anime_id=anime["id"],
-            doc=anime.to_json(),
+            doc=anime.to_dict(),
             vectors=embedding,
         )
 
