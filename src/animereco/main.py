@@ -1,9 +1,12 @@
 import json
 import pickle
+import time
 
+import mistralai
 from anyio import Path
 from llama_index.embeddings.mistralai import MistralAIEmbedding
 from numpy import concat
+from openai import api_key
 from sqlalchemy import select
 
 from animereco.anilist import Anilist
@@ -16,15 +19,39 @@ from animereco.utils import clean_html_string
 logger = setup_logging(__name__)
 
 
+class MistralEmbedder:
+    api_key: str
+    model_name: str
+    model: MistralAIEmbedding
+
+    def __init__(self, model_name: str, api_key: str):
+        self.api_key = api_key
+        self.model_name = model_name
+        self.model = MistralAIEmbedding(model_name=model_name, api_key=api_key)
+
+    def get_text_embedding(self, text: str):
+        try:
+            embedding = self.model.get_text_embedding(text)
+            return embedding
+        except mistralai.models.sdkerror.SDKError as e:
+            if e.status_code == 429:
+                logger.debug(f"Rate limit exceeded. Retrying in 1 second: {e.message}")
+                time.sleep(1)
+                return self.get_text_embedding(text)
+            return None
+
+
 def main():
     db = Database()
     db.init_db()
 
     data = pickle.load(open(Path(__file__).parent / "data" / "anime.pkl", "rb"))
+    data = data.sort_values(by="id", ascending=True)
 
-    api_key = MISTRAL_API_KEY
-    model_name = "mistral-embed"
-    embed_model = MistralAIEmbedding(model_name=model_name, api_key=api_key)
+    embedder = MistralEmbedder(
+        model_name="mistral-embed",
+        api_key=MISTRAL_API_KEY,
+    )
 
     for _, anime in data.iterrows():
         genres = json.loads(anime["genres"])
@@ -59,11 +86,12 @@ def main():
             + " "
             + concat_tags
         )
-        embedding = embed_model.get_text_embedding(to_embed)
+
+        embedding = embedder.get_text_embedding(to_embed)
 
         anime_entity = AnimeMistral(
             anime_id=anime["id"],
-            doc=anime,
+            doc=anime.to_json(),
             vectors=embedding,
         )
 
@@ -71,6 +99,7 @@ def main():
             session.add(anime_entity)
             session.commit()
             logger.debug(f"Added anime {anime['id']} to database")
+
     #     to_compare = session.query(AnimeMistral).first()
 
     #     res = session.scalars(
