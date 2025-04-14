@@ -10,7 +10,7 @@ from animereco.db import get_session
 router = APIRouter(prefix="/anime", tags=["anime"])
 
 
-@router.get("/autocomplete", response_model=list[Anime])
+@router.post("/autocomplete", response_model=list[Anime])
 async def get_anime(search: str, session: Session = Depends(get_session)):
     """
     Get anime data from the database.
