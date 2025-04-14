@@ -3,15 +3,18 @@ import pickle
 import time
 
 import mistralai
+import uvicorn
 from anyio import Path
+from fastapi import FastAPI
 from llama_index.embeddings.mistralai import MistralAIEmbedding
 from numpy import concat
 from openai import api_key
 from sqlalchemy import select
 
 from animereco.anilist import Anilist
+from animereco.api.routes import router as api_router
 from animereco.config import MISTRAL_API_KEY
-from animereco.db import Database
+from animereco.db import Database, db
 from animereco.log import setup_logging
 from animereco.models import AnimeMistral
 from animereco.utils import clean_html_string
@@ -41,10 +44,7 @@ class MistralEmbedder:
             return None
 
 
-def main():
-    db = Database()
-    db.init_db()
-
+def load_anime(db: Database):
     logger.info("Starting to load anime data")
     data = pickle.load(open(Path(__file__).parent / "data" / "anime.pkl", "rb"))
     data = data.sort_values(by="id", ascending=True)
@@ -55,6 +55,7 @@ def main():
             "id",
             "title_english",
             "title_native",
+            "title_romaji",
             "description",
             "genres",
             "tags",
@@ -122,12 +123,53 @@ def main():
             anime_id=anime["id"],
             doc=anime.to_dict(),
             vectors=embedding,
+            title_english=anime["title_english"],
+            title_native=anime["title_native"],
+            title_romaji=anime["title_romaji"],
         )
 
         with db.get_session() as session:
             session.add(anime_entity)
             session.commit()
             logger.debug(f"Added anime {anime['id']} to database")
+
+
+async def lifespan(app: FastAPI):
+    await db.init_db()
+    yield
+    await db.close()
+
+
+app = FastAPI(title="Anime Recommender API", version="0.1.0", lifespan=lifespan)
+app.include_router(api_router)
+
+
+async def main():
+    pass
+    # db = Database()
+    # db.init_db()
+
+    # with db.get_session() as session:
+    #     to_compare = session.scalar(
+    #         select(AnimeMistral).where(AnimeMistral.anime_id == 127690)
+    #     )
+
+    #     if to_compare is None:
+    #         logger.error("Anime not found in database")
+    #         return
+    #     res = session.scalars(
+    #         select(AnimeMistral)
+    #         .order_by(AnimeMistral.vectors.l2_distance(to_compare.vectors))
+    #         .limit(10)
+    #     ).fetchmany()
+
+    #     for anime in res[1:]:
+    #         logger.debug(f"Anime ID: {anime.anime_id}")
+    #         logger.debug(
+    #             f"Title: {anime.doc['title_english']} | {anime.doc['title_native']}"
+    #        )
+
+    # load_anime(db)
 
     #     to_compare = session.query(AnimeMistral).first()
 
