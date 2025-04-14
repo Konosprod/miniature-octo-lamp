@@ -1,3 +1,4 @@
+import asyncio
 import json
 import pickle
 import time
@@ -10,6 +11,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from llama_index.embeddings.mistralai import MistralAIEmbedding
+from sqlalchemy import select
 
 from animereco.api.routes import router as api_router
 from animereco.config import MISTRAL_API_KEY
@@ -59,6 +61,7 @@ def load_anime(db: Database):
             "genres",
             "tags",
             "siteUrl",
+            "coverImage_extraLarge",
         ]
     ]
 
@@ -159,9 +162,40 @@ async def root(request: Request):
 
 
 async def main():
-    pass
-    # db = Database()
-    # db.init_db()
+    db = Database()
+    await db.init_db()
+
+    data = pickle.load(open(Path(__file__).parent / "data" / "anime.pkl", "rb"))
+    data = data.sort_values(by="id", ascending=True)
+    data["id"] = data["id"].astype(int)
+
+    data = data[
+        [
+            "id",
+            "title_english",
+            "title_native",
+            "title_romaji",
+            "description",
+            "genres",
+            "tags",
+            "siteUrl",
+            "coverImage_extraLarge",
+        ]
+    ]
+
+    async with db.get_session() as session:
+        async with session.begin():
+            for _, anime in data.iterrows():
+                res = await session.scalar(
+                    select(AnimeMistral).where(AnimeMistral.anime_id == anime["id"])
+                )
+
+                if res is None:
+                    logger.debug(f"Anime {anime['id']} not found in database")
+                    continue
+                else:
+                    res.cover = anime["coverImage_extraLarge"]
+                    session.add(res)
 
     # with db.get_session() as session:
     #     to_compare = session.scalar(
@@ -207,4 +241,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

@@ -83,6 +83,7 @@ body {
 
 .card:hover {
   transform: translateY(-4px);
+  cursor: pointer;
 }
 
 .card img {

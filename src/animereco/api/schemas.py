@@ -28,6 +28,7 @@ class Anime(BaseModel):
     genres: list[str] | None = None
     tags: list[Tag] | None = None
     siteUrl: str | None = None
+    cover: str | None = None
 
     class Config:
         from_attributes = True

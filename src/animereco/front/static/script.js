@@ -14,10 +14,15 @@ function fetchAnimeListAndDisplay(id) {
 
             animeList.forEach(anime => {
                 const card = document.createElement("div");
+                
+                card.addEventListener("click", () => {
+                    window.open(anime['siteUrl'], "_blank", 'noopener,noreferrer');
+                });
+
                 card.classList.add("card");
 
                 const img = document.createElement("img");
-                img.src = 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx97922-qrGn5fkQinDs.jpg';
+                img.src = anime['cover'];
                 img.alt = anime['title_romaji'] || anime['title_english'] || anime['title_native'];
 
                 const titleEl = document.createElement("h3");

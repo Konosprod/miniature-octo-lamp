@@ -43,10 +43,17 @@ async def get_top_10_ai_anime(
     """
     results = await crud.get_top_10_ai_anime(session, id)
 
-    print(results)
+    ret = []
 
     for row in results:
         row.doc["tags"] = json.loads(row.doc["tags"])
         row.doc["genres"] = json.loads(row.doc["genres"])
+        anime = Anime(**row.doc)
+        anime.title_native = row.title_native
+        anime.title_english = row.title_english
+        anime.title_romaji = row.title_romaji
+        anime.cover = row.cover
 
-    return [Anime(**row.doc) for row in results]
+        ret.append(anime)
+
+    return ret

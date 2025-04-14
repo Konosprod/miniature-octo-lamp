@@ -1,5 +1,7 @@
+from calendar import c
+
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import JSON, Integer, String
+from sqlalchemy import Integer, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Mapped, mapped_column
@@ -16,6 +18,7 @@ class Anime(Base):
     title_english = mapped_column(String, nullable=True)
     title_native = mapped_column(String, nullable=True)
     title_romaji = mapped_column(String, nullable=True)
+    cover = mapped_column(String, nullable=True)
 
 
 class AnimeMistral(Base):
@@ -27,3 +30,4 @@ class AnimeMistral(Base):
     title_english = mapped_column(String, nullable=True)
     title_native = mapped_column(String, nullable=True)
     title_romaji = mapped_column(String, nullable=True)
+    cover = mapped_column(String, nullable=True)
