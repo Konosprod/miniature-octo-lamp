@@ -4,13 +4,13 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 import animereco.api.crud as crud
-from animereco.api.schemas import Anime
+from animereco.api.schemas import Anime, AnimeAutoComplete
 from animereco.db import get_session
 
 router = APIRouter(prefix="/anime", tags=["anime"])
 
 
-@router.post("/autocomplete", response_model=list[Anime])
+@router.get("/autocomplete", response_model=list[AnimeAutoComplete])
 async def get_anime(search: str, session: Session = Depends(get_session)):
     """
     Get anime data from the database.
@@ -42,6 +42,8 @@ async def get_top_10_ai_anime(
     Get top 10 anime from the database.
     """
     results = await crud.get_top_10_ai_anime(session, id)
+
+    print(results)
 
     for row in results:
         row.doc["tags"] = json.loads(row.doc["tags"])

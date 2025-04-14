@@ -2,7 +2,7 @@ from pydantic import BaseModel
 
 
 class AnimeAutoComplete(BaseModel):
-    id: int
+    anime_id: int
     title_english: str | None = None
     title_native: str | None = None
     title_romaji: str | None = None
