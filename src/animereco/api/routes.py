@@ -1,11 +1,10 @@
 import json
 
+import api.crud as crud
+from api.schemas import Anime, AnimeAutoComplete
+from db import get_session
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-
-import animereco.api.crud as crud
-from animereco.api.schemas import Anime, AnimeAutoComplete
-from animereco.db import get_session
 
 router = APIRouter(prefix="/anime", tags=["anime"])
 

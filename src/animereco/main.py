@@ -5,20 +5,19 @@ import time
 
 import mistralai
 from anyio import Path
+from api.routes import router as api_router
+from config import MISTRAL_API_KEY
+from db import Database, db
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from llama_index.embeddings.mistralai import MistralAIEmbedding
+from log import setup_logging
+from models import AnimeMistral
 from sqlalchemy import select
-
-from animereco.api.routes import router as api_router
-from animereco.config import MISTRAL_API_KEY
-from animereco.db import Database, db
-from animereco.log import setup_logging
-from animereco.models import AnimeMistral
-from animereco.utils import clean_html_string
+from utils import clean_html_string
 
 logger = setup_logging(__name__)
 

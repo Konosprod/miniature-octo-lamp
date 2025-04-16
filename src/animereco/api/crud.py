@@ -1,7 +1,6 @@
+from models import AnimeMistral
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
-
-from animereco.models import AnimeMistral
 
 
 async def get_anime_autocomplete(session: Session, search: str) -> list[AnimeMistral]:

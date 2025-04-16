@@ -18,7 +18,7 @@ def setup_logging(name: str):
     console_handler.setFormatter(debug_format)
     logger.addHandler(console_handler)
 
-    file_handler = logging.FileHandler("logs/animereco.log")
+    file_handler = logging.FileHandler("logs/log")
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(debug_format)
     logger.addHandler(file_handler)
