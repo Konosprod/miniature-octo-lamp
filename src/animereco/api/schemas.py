@@ -32,3 +32,9 @@ class Anime(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class RecommendationComparison(BaseModel):
+    source: Anime
+    ours: list[Anime]
+    anilist: list[Anime]

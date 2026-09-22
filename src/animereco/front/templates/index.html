@@ -2,18 +2,49 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <title>Recherche Anime</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Anime Reco</title>
     <link rel="stylesheet" href="/static/style.css" />
   </head>
   <body>
-    <div class="main-container">
+    <header class="app-header">
+      <h1>Anime Reco</h1>
       <div class="search-container">
-        <input type="text" id="search" placeholder="Rechercher un anime..." />
+        <input
+          type="text"
+          id="search"
+          placeholder="Rechercher un anime (ex: Shingeki no Kyojin)..."
+          autocomplete="off"
+        />
         <ul id="suggestions"></ul>
       </div>
+    </header>
 
-      <div id="results-grid" class="grid-container"></div>
-    </div>
+    <main class="main-container">
+      <p id="empty-state" class="empty-state">
+        Cherche un anime ci-dessus pour voir ses recommandations.
+      </p>
+
+      <div id="content" class="content" hidden>
+        <section id="source-card" class="source-card"></section>
+
+        <p id="summary" class="summary"></p>
+
+        <div class="comparison">
+          <section class="result-column">
+            <h2>Notre algo</h2>
+            <div id="results-ours" class="grid-container"></div>
+          </section>
+
+          <section class="result-column">
+            <h2>Recommandations AniList</h2>
+            <div id="results-anilist" class="grid-container"></div>
+          </section>
+        </div>
+      </div>
+
+      <p id="loading-state" class="loading-state" hidden>Chargement des recommandations...</p>
+    </main>
 
     <script src="/static/script.js"></script>
   </body>

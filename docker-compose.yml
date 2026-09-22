@@ -1,0 +1,39 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: dockerfile
+    image: ghcr.io/konosprod/miniature-octo-lamp:latest
+    container_name: anireco-app
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:pgpassword@db:5432/anireco
+      SCW_SECRET_KEY: ${SCW_SECRET_KEY}
+      SCALEWAY_BASE_API: ${SCALEWAY_BASE_API}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: docker.io/pgvector/pgvector:pg17
+    container_name: anireco-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pgpassword
+      POSTGRES_DB: anireco
+    ports:
+      - "5432:5432"
+    volumes:
+      - anireco-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d anireco"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  anireco-pgdata:
+    external: true
