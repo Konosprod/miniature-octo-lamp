@@ -16,11 +16,9 @@ FRANCHISE_RELATION_TYPES = {
 CANDIDATE_POOL_SIZE = 40
 RESULT_LIMIT = 10
 ANILIST_RESULT_LIMIT = 10
-SIMILARITY_WEIGHT = 0.55
+SIMILARITY_WEIGHT = 0.6
 GENRE_WEIGHT = 0.15
-TAG_WEIGHT = 0.2
-POPULARITY_WEIGHT = 0.1
-POPULARITY_REF = 5000
+TAG_WEIGHT = 0.25
 
 
 def _franchise_neighbors(doc: dict) -> set[int]:
@@ -127,7 +125,7 @@ async def get_anime_recommendations(session: Session, id: int) -> list[Anime]:
     Retrieves a candidate pool by cosine similarity (pgvector), excludes
     same-franchise media (sequels, spin-offs, ...), then re-ranks the pool
     with a composite score blending embedding similarity (title + synopsis),
-    genre overlap, rank-weighted tag overlap, and popularity.
+    genre overlap, and rank-weighted tag overlap.
     """
     stmt = select(Anime).where(Anime.anime_id == id)
     res = await session.execute(stmt)
@@ -156,13 +154,11 @@ async def get_anime_recommendations(session: Session, id: int) -> list[Anime]:
         similarity = 1 - dist
         genre_score = _genre_jaccard(source_genres, _genres(candidate.doc))
         tag_score = _weighted_tag_overlap(source_tags, _tag_weights(candidate.doc))
-        popularity_score = min((candidate.doc.get("popularity") or 0) / POPULARITY_REF, 1.0)
 
         score = (
             SIMILARITY_WEIGHT * similarity
             + GENRE_WEIGHT * genre_score
             + TAG_WEIGHT * tag_score
-            + POPULARITY_WEIGHT * popularity_score
         )
         scored.append((score, candidate))
 
